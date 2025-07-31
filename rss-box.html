@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>تازه‌های فیبیست</title>
+  <style>
+    body {
+      direction: rtl;
+      background: #f0f2f5;
+      font-family: 'IRANSans', Tahoma, sans-serif;
+      margin: 0;
+      padding: 30px 10px;
+      color: #333;
+    }
+    #rss-feed-container {
+      max-width: 750px;
+      margin: 0 auto;
+      background-color: #f9f9f9;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+    #rss-feed-list {
+      list-style: none;
+      padding: 0;
+    }
+    #rss-feed-list li {
+      margin-bottom: 15px;
+      padding: 10px 15px;
+      background: #fff;
+      border-radius: 8px;
+      border: 1px solid #eee;
+      transition: background 0.3s;
+    }
+    #rss-feed-list li:hover {
+      background: #f0f0f0;
+    }
+    #rss-feed-list a {
+      text-decoration: none;
+      color: #0052cc;
+      font-size: 16px;
+      display: block;
+    }
+    .meta {
+      font-size: 13px;
+      color: #666;
+      margin-top: 6px;
+    }
+    .time-info {
+      text-align: center;
+      font-size: 15px;
+      color: #444;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="rss-feed-container">
+  <h2>📰 تازه‌های فیبیست</h2>
+  <div class="time-info">
+    <span>🗓 <span id="date">در حال بارگذاری...</span></span>
+    <span style="margin: 0 10px;">⏰ <span id="clock">--:--:--</span></span>
+  </div>
+  <ul id="rss-feed-list"></ul>
+</div>
+
+<script>
+  async function fetchRSS() {
+    const rssUrl = 'https://mo1404rteza.github.io/RSS/custom-feed.xml';
+    const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
+
+    try {
+      const response = await fetch(apiUrl);
+      if (!response.ok) throw new Error('خطا در دریافت داده‌ها');
+
+      const data = await response.json();
+      const list = document.getElementById('rss-feed-list');
+      list.innerHTML = '';
+
+      data.items.slice(0, 6).forEach(item => {
+        const pubDate = new Date(item.pubDate);
+        const now = new Date();
+        const diffHours = (now - pubDate) / (1000 * 60 * 60);
+
+        const dateStr = pubDate.toLocaleDateString('fa-IR', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
+
+        const li = document.createElement('li');
+
+        const a = document.createElement('a');
+        a.href = item.link;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        a.textContent = '📌 ' + item.title;
+
+        const meta = document.createElement('div');
+        meta.className = 'meta';
+        meta.innerHTML = `🗓 ${dateStr}` + (diffHours < 72 ? ` &nbsp; 🔄 <strong style="color: #d9534f;">به‌روزرسانی شده!</strong>` : '');
+
+        li.appendChild(a);
+        li.appendChild(meta);
+        list.appendChild(li);
+      });
+
+    } catch (error) {
+      document.getElementById('rss-feed-container').textContent = '❌ خطا در بارگذاری اخبار.';
+      console.error(error);
+    }
+  }
+
+  function updateClock() {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2, '0');
+    const m = String(now.getMinutes()).padStart(2, '0');
+    const s = String(now.getSeconds()).padStart(2, '0');
+
+    const date = new Intl.DateTimeFormat('fa-IR', {
+      year: 'numeric', month: 'long', day: 'numeric'
+    }).format(now);
+
+    document.getElementById('clock').textContent = `${h}:${m}:${s}`;
+    document.getElementById('date').textContent = date;
+  }
+
+  fetchRSS();
+  updateClock();
+  setInterval(updateClock, 1000);
+</script>
+
+</body>
+</html>
