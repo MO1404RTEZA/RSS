@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>تازه‌های فیبیست</title>
+  <style>
+    body {
+      direction: rtl;
+      background: #f0f2f5;
+      font-family: 'IRANSans', Tahoma, sans-serif;
+      margin: 0;
+      padding: 30px 10px;
+      color: #333;
+    }
+    #rss-feed-container {
+      max-width: 750px;
+      margin: 0 auto;
+      background-color: #f9f9f9;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+    #rss-feed-list {
+      list-style: none;
+      padding: 0;
+    }
+    #rss-feed-list li {
+      margin-bottom: 15px;
+      padding: 10px 15px;
+      background: #fff;
+      border-radius: 8px;
+      border: 1px solid #eee;
+      transition: background 0.3s;
+    }
+    #rss-feed-list li:hover {
+      background: #f0f0f0;
+    }
+    #rss-feed-list a {
+      text-decoration: none;
+      color: #0052cc;
+      font-size: 16px;
+      display: block;
+    }
+    .meta {
+      font-size: 13px;
+      color: #666;
+      margin-top: 6px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="rss-feed-container">
+  <h2>📰 تازه‌های فیبیست</h2>
+  <ul id="rss-feed-list">
+    <li>در حال بارگذاری...</li>
+  </ul>
+</div>
+
+<script>
+  async function fetchRSSDirect() {
+    const rssUrl = 'https://mo1404rteza.github.io/RSS/custom-feed.xml';
+
+    try {
+      const response = await fetch(rssUrl);
+      if (!response.ok) throw new Error('خطا در دریافت فید XML');
+
+      const text = await response.text();
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(text, 'application/xml');
+
+      const items = xmlDoc.querySelectorAll('item');
+      const list = document.getElementById('rss-feed-list');
+      list.innerHTML = '';
+
+      for (let i = 0; i < Math.min(items.length, 6); i++) {
+        const item = items[i];
+        const title = item.querySelector('title')?.textContent || 'بدون عنوان';
+        const link = item.querySelector('link')?.textContent || '#';
+        const pubDateRaw = item.querySelector('pubDate')?.textContent;
+        const pubDate = pubDateRaw ? new Date(pubDateRaw) : null;
+
+        const dateStr = pubDate
+          ? pubDate.toLocaleDateString('fa-IR', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            })
+          : 'تاریخ نامشخص';
+
+        const li = document.createElement('li');
+
+        const a = document.createElement('a');
+        a.href = link;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        a.textContent = '📌 ' + title;
+
+        const meta = document.createElement('div');
+        meta.className = 'meta';
+        meta.textContent = `🗓 ${dateStr}`;
+
+        li.appendChild(a);
+        li.appendChild(meta);
+
+        list.appendChild(li);
+      }
+
+      if(items.length === 0) {
+        list.innerHTML = '<li>فیدی یافت نشد.</li>';
+      }
+
+    } catch (err) {
+      const container = document.getElementById('rss-feed-container');
+      container.innerHTML = '<p style="color:red; text-align:center;">❌ خطا در بارگذاری فید.</p>';
+      console.error(err);
+    }
+  }
+
+  // اجرای اولیه
+  fetchRSSDirect();
+
+  // بروزرسانی هر ۵ دقیقه
+  setInterval(fetchRSSDirect, 5 * 60 * 1000);
+</script>
+
+</body>
+</html>
