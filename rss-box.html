@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="fa">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>تازه‌های فیبیست</title>
   <style>
     body {
@@ -84,10 +84,15 @@
       const list = document.getElementById('rss-feed-list');
       list.innerHTML = '';
 
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
       data.items.slice(0, 6).forEach(item => {
         const pubDate = new Date(item.pubDate);
-        const now = new Date();
-        const diffHours = (now - pubDate) / (1000 * 60 * 60);
+        const pubDateNoTime = new Date(pubDate);
+        pubDateNoTime.setHours(0,0,0,0);
+
+        const isToday = pubDateNoTime.getTime() === today.getTime();
 
         const dateStr = pubDate.toLocaleDateString('fa-IR', {
           year: 'numeric',
@@ -105,10 +110,11 @@
 
         const meta = document.createElement('div');
         meta.className = 'meta';
-        meta.innerHTML = `🗓 ${dateStr}` + (diffHours < 72 ? ` &nbsp; 🔄 <strong style="color: #d9534f;">به‌روزرسانی شده!</strong>` : '');
+        meta.innerHTML = `🗓 ${dateStr}` + (isToday ? ` &nbsp; 🔄 <strong style="color: #d9534f;">امروز به‌روزرسانی شده!</strong>` : '');
 
         li.appendChild(a);
         li.appendChild(meta);
+
         list.appendChild(li);
       });
 
