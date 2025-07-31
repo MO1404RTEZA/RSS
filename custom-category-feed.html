@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>تازه‌های آزمایش‌های گفت‌انگیز فیزیک - فیبیست</title>
+  <style>
+    body {
+      font-family: 'IRANSans', Tahoma, sans-serif;
+      background-color: #f9f9f9;
+      color: #222;
+      max-width: 700px;
+      margin: 40px auto;
+      padding: 20px;
+      line-height: 1.7;
+      direction: rtl;
+    }
+    h1 {
+      text-align: center;
+      color: #0073aa;
+      margin-bottom: 25px;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      background: #fff;
+      border-radius: 10px;
+      padding: 15px 20px;
+      margin-bottom: 15px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+      transition: background 0.3s;
+    }
+    li:hover {
+      background: #f0f8ff;
+    }
+    a {
+      text-decoration: none;
+      color: #0052cc;
+      font-weight: bold;
+      font-size: 17px;
+      display: block;
+      margin-bottom: 6px;
+    }
+    .date {
+      font-size: 13px;
+      color: #666;
+    }
+    .description {
+      margin-top: 6px;
+      font-size: 14px;
+      color: #444;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>تازه‌های آزمایش‌های گفت‌انگیز فیزیک</h1>
+  <ul id="feed-list">
+    <li>در حال بارگذاری...</li>
+  </ul>
+
+  <script>
+    async function loadFeed() {
+      const feedUrl = 'https://www.phy20.com/category/%d8%a2%d8%b2%d9%85%d9%80%d8%a7%db%8c%d8%b4%d9%80%d9%87%d9%80%d8%a7%db%8c-%d8%b4%da%af%d9%81%d8%aa-%d8%a7%d9%86%da%af%db%8c%d8%b2-%d9%81%db%8c%d8%a8%db%8c%d8%b3%d8%aa/feed/';
+
+      try {
+        const response = await fetch(feedUrl);
+        if (!response.ok) throw new Error('خطا در دریافت فید');
+
+        const text = await response.text();
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(text, "application/xml");
+
+        const items = xmlDoc.querySelectorAll("item");
+        const list = document.getElementById('feed-list');
+        list.innerHTML = '';
+
+        if (items.length === 0) {
+          list.innerHTML = '<li>خبر یا مطلبی یافت نشد.</li>';
+          return;
+        }
+
+        items.forEach(item => {
+          const title = item.querySelector("title")?.textContent || "بدون عنوان";
+          const link = item.querySelector("link")?.textContent || "#";
+          const pubDateText = item.querySelector("pubDate")?.textContent || "";
+          const description = item.querySelector("description")?.textContent || "";
+
+          // تبدیل تاریخ به فرمت فارسی
+          let pubDate = new Date(pubDateText);
+          let pubDateStr = "";
+          if (!isNaN(pubDate)) {
+            pubDateStr = pubDate.toLocaleDateString('fa-IR', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            });
+          }
+
+          const li = document.createElement('li');
+
+          const a = document.createElement('a');
+          a.href = link;
+          a.target = '_blank';
+          a.rel = 'noopener noreferrer';
+          a.textContent = title;
+
+          const dateDiv = document.createElement('div');
+          dateDiv.className = 'date';
+          dateDiv.textContent = pubDateStr;
+
+          const descDiv = document.createElement('div');
+          descDiv.className = 'description';
+          descDiv.innerHTML = description;
+
+          li.appendChild(a);
+          li.appendChild(dateDiv);
+          li.appendChild(descDiv);
+
+          list.appendChild(li);
+        });
+
+      } catch (err) {
+        const list = document.getElementById('feed-list');
+        list.innerHTML = `<li>❌ خطا در بارگذاری فید: ${err.message}</li>`;
+        console.error(err);
+      }
+    }
+
+    loadFeed();
+  </script>
+
+</body>
+</html>
